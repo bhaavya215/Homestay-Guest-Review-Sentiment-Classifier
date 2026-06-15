@@ -17,21 +17,23 @@ A web application that helps homestay owners analyze guest reviews and gain insi
 
 ## Project Structure
 
+```text
 src/
 ├── components/
-│ ├── Navbar.jsx
-│ ├── Hero.jsx
-│ ├── Card.jsx
-│ └── Footer.jsx
+│   ├── Navbar.jsx
+│   ├── Hero.jsx
+│   ├── Card.jsx
+│   └── Footer.jsx
 │
 ├── pages/
-│ ├── Home.jsx
-│ ├── Dashboard.jsx
-│ ├── Reviews.jsx
-│ └── About.jsx
+│   ├── Home.jsx
+│   ├── Dashboard.jsx
+│   ├── Reviews.jsx
+│   └── About.jsx
 │
 ├── App.jsx
 └── main.jsx
+```
 
 ## Author
 
