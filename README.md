@@ -35,6 +35,11 @@ src/
 └── main.jsx
 ```
 
-## Author
+## How to run backend locally
+1. Open a terminal and navigate to the backend folder: `cd backend`
+2. Install dependencies: `npm install`
+3. Start the server: `node server.js` (or `npm run dev` if using nodemon)
+4. The server will run on `http://localhost:5000`
 
+## Author
 Bhaavya Srivastava
