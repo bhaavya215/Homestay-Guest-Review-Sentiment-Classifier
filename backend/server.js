@@ -1,82 +1,102 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 require('dotenv').config();
+
+const Review = require('./models/Review');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-let reviews = [
-  { id: 1, text: "Great homestay, very clean!", sentiment: "Positive" },
-  { id: 2, text: "Location was hard to find.", sentiment: "Negative" },
-  { id: 3, text: "It was okay, nothing special.", sentiment: "Neutral" }
-];
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log(err));
 
 app.get('/', (req, res) => {
   res.send('Homestay AI Backend is running!');
 });
 
-app.get('/api/reviews/search', (req, res) => {
-  const { q } = req.query;
-  if (!q) {
-    return res.status(400).json({ error: "Search query 'q' is required" });
+app.get('/api/reviews/search', async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ error: "Search query 'q' is required" });
+    }
+    const filtered = await Review.find({ text: { $regex: q, $options: 'i' } });
+    res.status(200).json(filtered);
+  } catch (err) {
+    next(err);
   }
-  const filtered = reviews.filter(r => r.text.toLowerCase().includes(q.toLowerCase()));
-  res.status(200).json(filtered);
 });
 
-app.get('/api/reviews', (req, res) => {
-  res.status(200).json(reviews);
+app.get('/api/reviews', async (req, res, next) => {
+  try {
+    const reviews = await Review.find();
+    res.status(200).json(reviews);
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.get('/api/reviews/:id', (req, res) => {
-  const review = reviews.find(r => r.id === parseInt(req.params.id));
-  if (!review) {
-    return res.status(404).json({ error: "Review not found" });
+app.get('/api/reviews/:id', async (req, res, next) => {
+  try {
+    const review = await Review.findById(req.params.id);
+    if (!review) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+    res.status(200).json(review);
+  } catch (err) {
+    next(err);
   }
-  res.status(200).json(review);
 });
 
-app.post('/api/reviews', (req, res) => {
-  const { text, sentiment } = req.body;
-  if (!text || !sentiment) {
-    return res.status(400).json({ error: "Text and sentiment are required" });
+app.post('/api/reviews', async (req, res, next) => {
+  try {
+    const { text, sentiment } = req.body;
+    if (!text || !sentiment) {
+      return res.status(400).json({ error: "Text and sentiment are required" });
+    }
+    const newReview = new Review({ text, sentiment });
+    await newReview.save();
+    res.status(201).json(newReview);
+  } catch (err) {
+    next(err);
   }
-  const newReview = {
-    id: reviews.length ? reviews[reviews.length - 1].id + 1 : 1,
-    text,
-    sentiment
-  };
-  reviews.push(newReview);
-  res.status(201).json(newReview);
 });
 
-app.put('/api/reviews/:id', (req, res) => {
-  const reviewId = parseInt(req.params.id);
-  const index = reviews.findIndex(r => r.id === reviewId);
-  if (index === -1) {
-    return res.status(404).json({ error: "Review not found" });
+app.put('/api/reviews/:id', async (req, res, next) => {
+  try {
+    const { text, sentiment } = req.body;
+    const updatedReview = await Review.findByIdAndUpdate(
+      req.params.id,
+      { text, sentiment },
+      { new: true, runValidators: true }
+    );
+    if (!updatedReview) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+    res.status(200).json(updatedReview);
+  } catch (err) {
+    next(err);
   }
-  const { text, sentiment } = req.body;
-  if (text) reviews[index].text = text;
-  if (sentiment) reviews[index].sentiment = sentiment;
-  res.status(200).json(reviews[index]);
 });
 
-app.delete('/api/reviews/:id', (req, res) => {
-  const reviewId = parseInt(req.params.id);
-  const index = reviews.findIndex(r => r.id === reviewId);
-  if (index === -1) {
-    return res.status(404).json({ error: "Review not found" });
+app.delete('/api/reviews/:id', async (req, res, next) => {
+  try {
+    const deletedReview = await Review.findByIdAndDelete(req.params.id);
+    if (!deletedReview) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+    res.status(204).send();
+  } catch (err) {
+    next(err);
   }
-  reviews.splice(index, 1);
-  res.status(204).send();
 });
 
 const PORT = process.env.PORT || 5000;
 
-// Global Error Handler Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something broke on the server!" });
