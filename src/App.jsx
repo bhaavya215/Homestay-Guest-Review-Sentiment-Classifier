@@ -6,6 +6,8 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Reviews from "./pages/Reviews";
 import About from "./pages/About";
+import Login from "./pages/Login";
+import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
   return (
@@ -15,9 +17,26 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/reviews" element={<Reviews />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
+            
+            <Route 
+              path="/dashboard" 
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              } 
+            />
+            
+            <Route 
+              path="/reviews" 
+              element={
+                <PrivateRoute>
+                  <Reviews />
+                </PrivateRoute>
+              } 
+            />
           </Routes>
         </main>
         <Footer />

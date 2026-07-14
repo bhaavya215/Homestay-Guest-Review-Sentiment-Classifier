@@ -1,14 +1,21 @@
+const requireAuth = require('./middleware/requireAuth');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const passport = require('passport');
 require('dotenv').config();
+require('./config/passport');
 
+const authRoutes = require('./routes/auth');
 const Review = require('./models/Review');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
+
+app.use('/api/auth', authRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected'))
@@ -52,7 +59,7 @@ app.get('/api/reviews/:id', async (req, res, next) => {
   }
 });
 
-app.post('/api/reviews', async (req, res, next) => {
+app.post('/api/reviews', requireAuth, async (req, res, next) => {
   try {
     const { text, sentiment } = req.body;
     if (!text || !sentiment) {
@@ -66,7 +73,7 @@ app.post('/api/reviews', async (req, res, next) => {
   }
 });
 
-app.put('/api/reviews/:id', async (req, res, next) => {
+app.put('/api/reviews/:id', requireAuth, async (req, res, next) => {
   try {
     const { text, sentiment } = req.body;
     const updatedReview = await Review.findByIdAndUpdate(
@@ -83,7 +90,7 @@ app.put('/api/reviews/:id', async (req, res, next) => {
   }
 });
 
-app.delete('/api/reviews/:id', async (req, res, next) => {
+app.delete('/api/reviews/:id', requireAuth, async (req, res, next) => {
   try {
     const deletedReview = await Review.findByIdAndDelete(req.params.id);
     if (!deletedReview) {

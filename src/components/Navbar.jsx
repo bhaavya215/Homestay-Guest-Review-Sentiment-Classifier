@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
   const [darkMode, setDarkMode] = useState(false);
+  const navigate = useNavigate();
+  const isAuthenticated = !!localStorage.getItem('token');
 
   useEffect(() => {
     if (darkMode) {
@@ -11,11 +14,21 @@ export default function Navbar() {
     }
   }, [darkMode]);
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   return (
     <nav className="flex flex-col md:flex-row justify-between items-center p-4 gap-4 bg-blue-600 text-white dark:bg-gray-800 transition-colors">
       <div className="font-bold text-xl">Homestay AI</div>
       
       <div className="flex flex-wrap justify-center gap-4 items-center text-sm md:text-base">
+        {isAuthenticated ? (
+          <button onClick={handleLogout} className="cursor-pointer">Logout</button>
+        ) : (
+          <a href="/login">Login</a>
+        )}
         <a href="/">Home</a>
         <a href="/dashboard">Dashboard</a>
         <a href="/reviews">Reviews</a>
