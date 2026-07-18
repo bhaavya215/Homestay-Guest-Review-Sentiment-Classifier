@@ -1,4 +1,6 @@
-const requireAuth = require('./middleware/requireAuth');
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -7,6 +9,8 @@ require('dotenv').config();
 require('./config/passport');
 
 const authRoutes = require('./routes/auth');
+const aiRoutes = require('./routes/ai');
+const requireAuth = require('./middleware/requireAuth');
 const Review = require('./models/Review');
 
 const app = express();
@@ -16,6 +20,7 @@ app.use(express.json());
 app.use(passport.initialize());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected'))
@@ -102,12 +107,12 @@ app.delete('/api/reviews/:id', requireAuth, async (req, res, next) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
-
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something broke on the server!" });
 });
+
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
